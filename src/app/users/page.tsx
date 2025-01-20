@@ -1,7 +1,8 @@
 "use client";
 
-import {useCallback, useEffect, useState} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { UserCard } from "@/components/user-card";
+import { Navbar } from "@/components/ui/navbar";
 
 interface User {
   id: string;
@@ -29,15 +30,20 @@ export default function Users() {
   }, []);
 
   return (
-    <div className="p-3 grid grid-cols-2 gap-4">
-      {users.map((user) => (
-        <UserCard
-          key={user.id}
-          userName={user.name}
-          email={user.email}
-          avatar={user.avatar}
-        />
-      ))}
-    </div>
+    <>
+      {/* Add the Navbar */}
+      <Navbar />
+      {/* Main content */}
+      <div className="p-3 grid grid-cols-2 gap-4">
+        {users.map((user) => (
+          <UserCard
+            key={user.id}
+            userName={user.name}
+            email={user.email}
+            avatar={user.avatar}
+          />
+        ))}
+      </div>
+    </>
   );
 }
