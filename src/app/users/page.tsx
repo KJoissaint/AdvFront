@@ -34,7 +34,7 @@ export default function Users() {
       {/* Add the Navbar */}
       <Navbar />
       {/* Main content */}
-      <div className="p-3 grid grid-cols-2 gap-4">
+      <div className=" pt-20 p-3 grid grid-cols-3 gap-4">
         {users.map((user) => (
           <UserCard
             key={user.id}
