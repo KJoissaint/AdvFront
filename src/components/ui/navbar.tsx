@@ -1,11 +1,14 @@
-import { Fragment } from "react";
+"use client";
+
+import { Fragment, useEffect } from "react";
+import { usePathname } from "next/navigation"; // Import to get the current path
 import { Disclosure } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const navigation = [
-  { name: "Home", href: "/", current: true },
-  { name: "Users", href: "/users", current: false },
-  { name: "Login", href: "/login", current: false },
+  { name: "Home", href: "/" },
+  { name: "Users", href: "/users" },
+  { name: "Login", href: "/login" },
 ];
 
 function classNames(...classes: string[]): string {
@@ -13,8 +16,19 @@ function classNames(...classes: string[]): string {
 }
 
 export function Navbar() {
+  const pathname = usePathname(); // Get the current path
+
+  // Add the `current` property dynamically
+  const updatedNavigation = navigation.map((item) => ({
+    ...item,
+    current: pathname === item.href, // Mark as current if pathname matches href
+  }));
+
   return (
-    <Disclosure as="nav" className="bg-gray-800 w-full fixed top-0 z-10 left-64">
+    <Disclosure
+      as="nav"
+      className="bg-black !important w-full fixed top-0 z-10 left-64"
+    >
       {({ open }) => (
         <>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,7 +41,7 @@ export function Navbar() {
                 </div>
                 <div className="hidden md:block">
                   <div className="ml-10 flex items-baseline space-x-4">
-                    {navigation.map((item) => (
+                    {updatedNavigation.map((item) => (
                       <a
                         key={item.name}
                         href={item.href}
@@ -61,7 +75,7 @@ export function Navbar() {
 
           <Disclosure.Panel className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navigation.map((item) => (
+              {updatedNavigation.map((item) => (
                 <Disclosure.Button
                   key={item.name}
                   as="a"
