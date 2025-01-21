@@ -77,6 +77,7 @@ export default function Users() {
               userName={user.name}
               email={user.email}
               avatar={user.avatar}
+              id={user.id} // Pass the ID for navigation
             />
           ))}
         </div>
