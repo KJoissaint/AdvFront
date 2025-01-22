@@ -10,6 +10,8 @@ interface User {
   name: string;
   avatar: string;
   role: string;
+  creationAt: string;
+  updatedAt: string;
 }
 
 export default function Users() {

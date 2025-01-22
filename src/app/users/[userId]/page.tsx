@@ -18,6 +18,8 @@ interface User {
   name: string;
   avatar: string;
   role: string;
+  creationAt: string;
+  updatedAt: string;
 }
 
 export default function UserDetails() {
@@ -48,7 +50,8 @@ export default function UserDetails() {
   }
 
   return (
-    
+    <>
+    <Navbar />
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
@@ -60,9 +63,12 @@ export default function UserDetails() {
             <AvatarImage src={user.avatar} />
             <AvatarFallback>{user.name[0]}</AvatarFallback>
           </Avatar>
-          <p className="text-gray-600">Role: {user.role || "N/A"}</p>
+          <p className="text-gray-600"><span className="">Role: </span>{user.role || "N/A"}</p>
+          <p className="text-gray-600"><span className="">Creation date: </span>{user.creationAt || "N/A"}</p>
+          <p className="text-gray-600"><span className="">Last edited: </span>{user.updatedAt || "N/A"}</p>
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }
