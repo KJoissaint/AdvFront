@@ -33,7 +33,7 @@ export default function Users() {
 
   useEffect(() => {
     getUsers();
-  }, []);
+  }, [getUsers]);
 
   // Filter users based on search term
   const filteredUsers = users.filter(
@@ -53,52 +53,84 @@ export default function Users() {
     setCurrentPage(pageNumber);
   };
 
+  const renderPagination = () => {
+    const maxVisiblePages = 5;
+    const pages = [];
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (currentPage > 1) {
+      pages.push(
+        <button
+          key="prev"
+          onClick={() => handlePageChange(currentPage - 1)}
+          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+        >
+          Prev
+        </button>
+      );
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-4 py-2 rounded-lg ${
+            currentPage === i
+              ? "bg-black text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    if (currentPage < totalPages) {
+      pages.push(
+        <button
+          key="next"
+          onClick={() => handlePageChange(currentPage + 1)}
+          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+        >
+          Next
+        </button>
+      );
+    }
+
+    return pages;
+  };
+
   return (
     <>
-      {/* Add the Navbar */}
       <Navbar />
 
-      {/* Main content */}
-      <div className="pt-20 p-3">
-        {/* Search bar */}
+      <div className="pt-20 p-3 max-w-6xl mx-auto">
         <div className="mb-4">
           <input
             type="text"
             placeholder="Search users by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+            className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* User grid */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentUsers.map((user) => (
             <UserCard
               key={user.id}
               userName={user.name}
               email={user.email}
               avatar={user.avatar}
-              id={user.id} // Pass the ID for navigation
+              id={user.id}
             />
           ))}
         </div>
 
-        {/* Pagination controls */}
         <div className="flex justify-center items-center mt-6 space-x-2">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-4 py-2 rounded-lg ${
-                currentPage === i + 1
-                  ? "bg-black text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {renderPagination()}
         </div>
       </div>
     </>
