@@ -62,7 +62,7 @@ export default function Users() {
   };
 
   const handleCreateUser = () => {
-    // Simulate adding a user (replace with real API logic)
+    // --------------
     const userWithId = {
       ...newUser,
       id: Math.random().toString(36).substr(2, 9),
