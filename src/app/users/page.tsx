@@ -35,7 +35,7 @@ export default function Users() {
 
       setUsers(usersData);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching users:", error);
     }
   }, []);
 
@@ -61,17 +61,29 @@ export default function Users() {
     setCurrentPage(pageNumber);
   };
 
-  const handleCreateUser = () => {
-    // --------------
-    const userWithId = {
-      ...newUser,
-      id: Math.random().toString(36).substr(2, 9),
-      creationAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setUsers((prev) => [...prev, userWithId]);
-    setIsModalOpen(false);
-    setNewUser({ email: "", name: "", role: "", avatar: "" }); // Reset form
+  const handleCreateUser = async () => {
+    try {
+      const response = await fetch("https://api.escuelajs.co/api/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create user");
+      }
+
+      const createdUser = await response.json();
+
+      // Update users list after creation
+      setUsers((prev) => [...prev, createdUser]);
+      setIsModalOpen(false);
+      setNewUser({ email: "", name: "", role: "", avatar: "" }); // Reset form
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
   };
 
   return (
