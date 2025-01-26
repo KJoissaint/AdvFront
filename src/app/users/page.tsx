@@ -12,6 +12,7 @@ interface User {
   avatar: string;
   creationAt: string;
   updatedAt: string;
+  password: string, // added password, (maybe it was the cause of the bug)
 }
 
 export default function Users() {
@@ -24,6 +25,7 @@ export default function Users() {
     name: "",
     role: "",
     avatar: "",
+    password: "", // added password, (maybe it was the cause of the bug)
   });
 
   const usersPerPage = 6; // Number of users per page
@@ -80,7 +82,7 @@ export default function Users() {
       // Update users list after creation
       setUsers((prev) => [...prev, createdUser]);
       setIsModalOpen(false);
-      setNewUser({ email: "", name: "", role: "", avatar: "" }); // Reset form
+      setNewUser({ email: "", name: "", password:"", role: "", avatar: "" }); // Reset form
     } catch (error) {
       console.error("Error creating user:", error);
     }
@@ -165,6 +167,16 @@ export default function Users() {
                     type="email"
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">Password</label>
+                  <input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                     required
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
                   />
