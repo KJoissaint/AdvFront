@@ -64,29 +64,43 @@ export default function Users() {
   };
 
   const handleCreateUser = async () => {
-    try {
-      const response = await fetch("https://api.escuelajs.co/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser),
-      });
+  try {
+    const userToCreate = {
+      ...newUser,
+      avatar: newUser.avatar.trim() || "random.com", // Set default if empty
+    };
 
-      if (!response.ok) {
-        throw new Error("Failed to create user");
-      }
+    const response = await fetch("https://api.escuelajs.co/api/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userToCreate),
+    });
 
-      const createdUser = await response.json();
-
-      // Update users list after creation
-      setUsers((prev) => [...prev, createdUser]);
-      setIsModalOpen(false);
-      setNewUser({ email: "", name: "", password:"", role: "", avatar: "" }); // Reset form
-    } catch (error) {
-      console.error("Error creating user:", error);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error response data:", errorData);
+      throw new Error("Failed to create user");
     }
-  };
+
+    const createdUser = await response.json();
+    console.log("Created user:", createdUser);
+
+    setUsers((prev) => [...prev, createdUser]);
+    setIsModalOpen(false);
+    setNewUser({ email: "", name: "", role: "", password: "", avatar: "" });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error creating user:", error.message);
+      alert("Erreur lors de la création de l'utilisateur : " + error.message);
+    } else {
+      console.error("Unknown error:", error);
+      alert("Erreur inconnue lors de la création de l'utilisateur.");
+    }
+  }
+};
+
 
   return (
     <>
