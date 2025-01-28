@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Navbar } from "@/components/ui/navbar"; // Import the Navbar
+import { useRouter } from "next/navigation"; // Import useRouter for redirection
+import { Navbar } from "@/components/ui/navbar";
 
 export default function Page() {
+  const router = useRouter(); // Initialize the router
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     try {
       const response = await fetch("https://api.escuelajs.co/api/v1/users");
@@ -24,7 +24,8 @@ export default function Page() {
       );
 
       if (user) {
-        setSuccess(`Welcome back, ${user.name}!`);
+        // Redirect to the home page on successful login
+        router.push("/");
       } else {
         setError("Invalid email or password. Please try again.");
       }
@@ -79,9 +80,6 @@ export default function Page() {
 
             {/* Error Message */}
             {error && <p className="text-red-500 text-sm">{error}</p>}
-
-            {/* Success Message */}
-            {success && <p className="text-green-500 text-sm">{success}</p>}
 
             {/* Submit Button */}
             <button
