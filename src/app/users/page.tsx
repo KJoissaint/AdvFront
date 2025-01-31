@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { UserCard } from "@/components/user-card";
 import { Navbar } from "@/components/ui/navbar";
+import { useQuery, useMutation, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 interface User {
   id: string;
@@ -12,38 +15,59 @@ interface User {
   avatar: string;
   creationAt: string;
   updatedAt: string;
-  password: string, // added password, (maybe it was the cause of the bug)
+  password: string;
 }
 
-export default function Users() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentPage, setCurrentPage] = useState(1); // Current page
-  const [searchTerm, setSearchTerm] = useState(""); // Search term
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+export default function UsersPage() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Users />
+    </QueryClientProvider>
+  );
+}
+
+function Users() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUser, setNewUser] = useState<Omit<User, "id" | "creationAt" | "updatedAt">>({
     email: "",
     name: "",
     role: "",
     avatar: "",
-    password: "", // added password, (maybe it was the cause of the bug)
+    password: "",
   });
 
-  const usersPerPage = 6; // Number of users per page
+  const usersPerPage = 6;
 
-  const getUsers = useCallback(async () => {
-    try {
-      const usersResponse = await fetch("https://api.escuelajs.co/api/v1/users");
-      const usersData = await usersResponse.json();
+  // 🔥 Fetch Users with React Query (Cached & Optimized)
+  const { data: users = [], refetch } = useQuery<User[]>({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await fetch("https://api.escuelajs.co/api/v1/users");
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
-      setUsers(usersData);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    getUsers();
-  }, [getUsers]);
+  // 🔥 Mutation for creating users
+  const createUserMutation = useMutation({
+    mutationFn: async (user: Omit<User, "id" | "creationAt" | "updatedAt">) => {
+      const res = await fetch("https://api.escuelajs.co/api/v1/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...user, avatar: user.avatar.trim() || "random.com" }),
+      });
+      if (!res.ok) throw new Error("Failed to create user");
+      return res.json();
+    },
+    onSuccess: () => {
+      refetch(); // Refresh users after creation
+      setIsModalOpen(false);
+      setNewUser({ email: "", name: "", role: "", password: "", avatar: "" });
+    },
+  });
 
   // Filter users based on search term
   const filteredUsers = users.filter(
@@ -52,55 +76,11 @@ export default function Users() {
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic for filtered users
+  // Pagination
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handleCreateUser = async () => {
-  try {
-    const userToCreate = {
-      ...newUser,
-      avatar: newUser.avatar.trim() || "random.com", // Set default if empty
-    };
-
-    const response = await fetch("https://api.escuelajs.co/api/v1/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userToCreate),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Error response data:", errorData);
-      throw new Error("Failed to create user");
-    }
-
-    const createdUser = await response.json();
-    console.log("Created user:", createdUser);
-
-    setUsers((prev) => [...prev, createdUser]);
-    setIsModalOpen(false);
-    setNewUser({ email: "", name: "", role: "", password: "", avatar: "" });
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error creating user:", error.message);
-      alert("Erreur lors de la création de l'utilisateur : " + error.message);
-    } else {
-      console.error("Unknown error:", error);
-      alert("Erreur inconnue lors de la création de l'utilisateur.");
-    }
-  }
-};
-
 
   return (
     <>
@@ -127,13 +107,7 @@ export default function Users() {
         {/* User grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentUsers.map((user) => (
-            <UserCard
-              key={user.id}
-              userName={user.name}
-              email={user.email}
-              avatar={user.avatar}
-              id={user.id}
-            />
+            <UserCard key={user.id} userName={user.name} email={user.email} avatar={user.avatar} id={user.id} />
           ))}
         </div>
 
@@ -142,19 +116,15 @@ export default function Users() {
           {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i + 1}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-4 py-2 rounded-lg ${
-                currentPage === i + 1
-                  ? "bg-black text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-4 py-2 rounded-lg ${currentPage === i + 1 ? "bg-black text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
             >
               {i + 1}
             </button>
           ))}
         </div>
 
-        {/* Modal for creating new user */}
+        {/* Modal for Creating Users */}
         {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -162,73 +132,13 @@ export default function Users() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleCreateUser();
+                  createUserMutation.mutate(newUser);
                 }}
               >
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Nom</label>
-                  <input
-                    type="text"
-                    value={newUser.name}
-                    onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Password</label>
-                  <input
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
-                  <input
-                    type="text"
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Avatar URL</label>
-                  <input
-                    type="text"
-                    value={newUser.avatar}
-                    onChange={(e) => setNewUser({ ...newUser, avatar: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-white"
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
-                  >
-                    Créer
-                  </button>
-                </div>
+                <input type="text" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} required placeholder="Nom" className="w-full px-4 py-2 border rounded-lg text-white" />
+                <input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required placeholder="Email" className="w-full px-4 py-2 border rounded-lg text-white" />
+                <input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required placeholder="Password" className="w-full px-4 py-2 border rounded-lg text-white" />
+                <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 mt-4">Créer</button>
               </form>
             </div>
           </div>

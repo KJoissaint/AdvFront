@@ -27,7 +27,7 @@ export const UserCard: FC<UserCardProps> = ({ userName, email, avatar, id }) => 
         </CardHeader>
         <CardContent>
           <Avatar>
-            <AvatarImage src={avatar} />
+            <AvatarImage src={avatar} loading="lazy" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         </CardContent>
