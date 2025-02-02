@@ -7,6 +7,7 @@ import {
   NavbarMenuItem,
   NavbarMenuButton,
 } from "@/components/ui/navbar";
+//look for fix for above !
 
 export function AppNavbar({ ...props }: React.ComponentProps<typeof Navbar>) {
   return (
