@@ -1,19 +1,21 @@
 "use client";
 
-import { Navbar } from "@/components/ui/navbar"; // Import the Navbar
+import { useContext } from "react";
+import { AuthContext } from "@/context/auth-context";
+import { Navbar } from "@/components/ui/navbar";
 
 export default function Home() {
+  const auth = useContext(AuthContext);
+
   return (
     <div>
-      {/* Add the Navbar here */}
       <Navbar />
-
-      {/* Content */}
       <div className="pt-20 ml-64">
-        {/* Your Dashboard Content */}
         <div className="p-3">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p>Welcome to your dashboard!</p>
+          <h1 className="text-2xl font-bold">
+            Welcome to your dashboard, {auth?.user?.name || "Guest"}!
+          </h1>
+          <p>Enjoy your session.</p>
         </div>
       </div>
     </div>

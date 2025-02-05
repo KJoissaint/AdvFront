@@ -155,7 +155,7 @@ function Users() {
         </div>
 
         {/* Modal pour la création */}
-        {isModalOpen && (
+        {/* {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
               <h2 className="text-xl font-semibold mb-4">Créer un nouvel utilisateur</h2>
@@ -174,7 +174,7 @@ function Users() {
               </form>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </>
   );
