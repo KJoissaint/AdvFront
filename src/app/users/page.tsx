@@ -37,10 +37,10 @@ function Users() {
     avatar: "",
     password: "",
   });
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const usersPerPage = 6;
 
-  // Récupération des utilisateurs avec React Query
   const { data: users = [], refetch } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: async () => {
@@ -51,7 +51,6 @@ function Users() {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Création d'un utilisateur
   const createUserMutation = useMutation({
     mutationFn: async (user: Omit<User, "id" | "creationAt" | "updatedAt">) => {
       const res = await fetch("https://api.escuelajs.co/api/v1/users", {
@@ -59,7 +58,7 @@ function Users() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...user,
-          avatar: user.avatar.trim() || "random.com", // Défaut si vide
+          avatar: user.avatar.trim() || "random.com",
         }),
       });
       if (!res.ok) throw new Error("Failed to create user");
@@ -72,7 +71,6 @@ function Users() {
     },
   });
 
-  // Suppression d'un utilisateur
   const deleteUserMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`https://api.escuelajs.co/api/v1/users/${id}`, {
@@ -85,12 +83,31 @@ function Users() {
     },
   });
 
-  // Édition (Mock)
+  const updateUserMutation = useMutation({
+    mutationFn: async (user: User) => {
+      const res = await fetch(`https://api.escuelajs.co/api/v1/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      });
+      if (!res.ok) throw new Error("Failed to update user");
+      return res.json();
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(["users"], (oldUsers: User[] | undefined) =>
+        oldUsers?.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+      );
+      setEditingUser(null);
+    },
+  });
+
   const handleEditUser = (id: string) => {
-    alert(`Modifier l'utilisateur ${id} (À implémenter)`);
+    const userToEdit = users.find((user) => user.id === id);
+    if (userToEdit) {
+      setEditingUser(userToEdit);
+    }
   };
 
-  // Filtrage et pagination
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,7 +124,6 @@ function Users() {
       <Navbar />
 
       <div className="pt-20 p-3 max-w-6xl mx-auto">
-        {/* Barre de recherche et bouton d'ajout */}
         <div className="mb-4 flex justify-between items-center">
           <input
             type="text"
@@ -120,11 +136,10 @@ function Users() {
             onClick={() => setIsModalOpen(true)}
             className="ml-4 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
           >
-            Créer un nouvel utilisateur
+            Create New User
           </button>
         </div>
 
-        {/* Liste des utilisateurs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentUsers.map((user) => (
             <UserCard
@@ -139,7 +154,6 @@ function Users() {
           ))}
         </div>
 
-        {/* Pagination */}
         <div className="flex justify-center items-center mt-6 space-x-2">
           {Array.from({ length: totalPages }, (_, i) => (
             <button
@@ -154,27 +168,47 @@ function Users() {
           ))}
         </div>
 
-        {/* Modal pour la création */}
-        {/* {isModalOpen && (
+        {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-              <h2 className="text-xl font-semibold mb-4">Créer un nouvel utilisateur</h2>
+              <h2 className="text-xl font-semibold mb-4">Create New User</h2>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   createUserMutation.mutate(newUser);
                 }}
               >
-                <input type="text" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} required placeholder="Nom" className="w-full px-4 py-2 border rounded-lg text-white" />
-                <input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required placeholder="Email" className="w-full px-4 py-2 border rounded-lg text-white" />
-                <input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required placeholder="Password" className="w-full px-4 py-2 border rounded-lg text-white" />
-                <input type="text" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })} required placeholder="Role" className="w-full px-4 py-2 border rounded-lg text-white" />
-                <input type="text" value={newUser.avatar} onChange={(e) => setNewUser({ ...newUser, avatar: e.target.value })} placeholder="Avatar URL (optionnel)" className="w-full px-4 py-2 border rounded-lg text-white" />
-                <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 mt-4">Créer</button>
+                <input type="text" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} required placeholder="Name" className="w-full px-4 py-2 border rounded-lg text-white" />
+                <input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required placeholder="Email" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required placeholder="Password" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <input type="text" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })} required placeholder="Role" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <input type="text" value={newUser.avatar} onChange={(e) => setNewUser({ ...newUser, avatar: e.target.value })} placeholder="Avatar URL (optional)" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 mt-4">Create</button>
               </form>
             </div>
           </div>
-        )} */}
+        )}
+
+        {editingUser && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+              <h2 className="text-xl font-semibold mb-4">Edit User</h2>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  updateUserMutation.mutate(editingUser);
+                }}
+              >
+                <input type="text" value={editingUser.name} onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })} required placeholder="Name" className="w-full px-4 py-2 border rounded-lg text-white" />
+                <input type="email" value={editingUser.email} onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })} required placeholder="Email" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <input type="text" value={editingUser.role} onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })} required placeholder="Role" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <input type="text" value={editingUser.avatar} onChange={(e) => setEditingUser({ ...editingUser, avatar: e.target.value })} placeholder="Avatar URL (optional)" className="w-full px-4 py-2 border rounded-lg text-white mt-2" />
+                <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 mt-4">Save Changes</button>
+                <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4 ml-2">Cancel</button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
