@@ -169,8 +169,14 @@ function Users() {
         </div>
 
         {isModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+         <div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            onClick={() => setIsModalOpen(false)} // Close modal when clicking outside
+          >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
+            onClick={(e) => e.stopPropagation()} // Prevent clicks inside the modal from closing it
+          >
               <h2 className="text-xl font-semibold mb-4">Create New User</h2>
               <form
                 onSubmit={(e) => {
@@ -190,8 +196,12 @@ function Users() {
         )}
 
         {editingUser && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            onClick={() => setEditingUser(null)} // Close modal when clicking outside 
+            >
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
+            onClick={(e) => e.stopPropagation()} // Prevent clicks inside the modal from closing it
+          >
               <h2 className="text-xl font-semibold mb-4">Edit User</h2>
               <form
                 onSubmit={(e) => {
